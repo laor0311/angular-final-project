@@ -1,0 +1,108 @@
+/* -------- Base -------- */
+:root{
+  --brand: #5d8bf4;     /* primary accent used on focus/primary button */
+  --ink:   #1b1f24;     /* dark text */
+  --muted: #a5acb8;     /* muted grey for borders */
+  --bg:    #f5f7fb;     /* soft page background */
+}
+
+html, body {
+  height: 100%;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  color: var(--ink);
+}
+
+.bg-login { background: var(--bg); }
+
+.card {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.imglogin {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 1rem;
+}
+
+.create-link {
+  text-underline-offset: 3px;
+}
+
+
+.title {
+  letter-spacing: .4px;
+}
+
+.input-underline {
+  border-bottom: 2px solid #e6eaf3;
+  transition: border-color .2s ease;
+}
+
+.input-underline:focus-within {
+  border-color: var(--brand);
+}
+
+.input-group-text {
+  color: #616b7a;
+}
+
+.form-control::placeholder { color: #98a1b0; }
+
+/* Remove Bootstrap’s default input borders since we’re using underline style */
+.input-group .form-control,
+.input-group .form-control:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+
+/* Small square icon buttons for social login */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: .5rem;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.125rem;
+  border: 0;
+  color: #fff;
+  box-shadow: 1px 1px 6px rgba(0,0,0,.2);
+}
+
+.btn-facebook { background: #1877f2; }
+.btn-twitter  { background: #1da1f2; }
+.btn-google   { background: #ea4335; }
+
+.btn-icon:hover { filter: brightness(.95); }
+
+.form-check-input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: .2rem;
+}
+@media (max-width: 767.98px){
+  .card { margin: 0 12px; }
+}
+
+
+/* Add more css */
+.input-group.input-underline {
+  border-bottom: 0 !important;
+}
+
+.input-group.input-underline .form-control {
+  border: none !important;
+  border-bottom: 2px solid #e6eaf3 !important; 
+  border-radius: 0;
+  background: transparent;
+  padding-bottom: .25rem;
+}
+
+.input-group.input-underline:focus-within .form-control {
+  border-bottom-color: var(--brand, #5d8bf4) !important;
+  box-shadow: none !important;
+}

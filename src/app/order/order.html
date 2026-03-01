@@ -1,0 +1,181 @@
+<div class="dashboard-shell" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <aside class="side-nav">
+    <div class="brand">
+      <span>Angular Midterm S2</span>
+    </div>
+
+    <nav class="menu">
+      <a class="menu-item" routerLink="/dashboard">
+        <i class="bi bi-speedometer2"></i> DASHBOARD
+      </a>
+      <a class="menu-item" routerLink="/products">
+        <i class="bi bi-bag"></i> PRODUCTS
+      </a>
+      <a class="menu-item" routerLink="/users">
+        <i class="bi bi-person"></i> USER
+      </a>
+      <a class="menu-item" routerLink="/category">
+        <i class="bi bi-tag"></i> CATEGORY
+      </a>
+      <a class="menu-item active" routerLink="/order">
+        <i class="bi bi-receipt"></i> ORDER
+      </a>
+      <a class="menu-item" href="#">
+        <i class="bi bi-bank"></i> INCOME
+      </a>
+      <a class="menu-item" routerLink="/posdashboard">
+        <i class="bi bi-shop"></i> POS
+      </a>
+    </nav>
+    <div class="menu-footer">
+      <a class="menu-item" routerLink="/login" (click)="signOut()">
+        <i class="bi bi-box-arrow-right"></i> SIGN OUT
+      </a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="top-bar">
+      <div class="top-left">
+        <button type="button" class="btn btn-link p-0 text-muted" (click)="toggleSidebar()">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <a href="#">Home</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="top-right">
+        <i class="bi bi-search"></i>
+        <i class="bi bi-chat-left-text"></i>
+        <i class="bi bi-bell"></i>
+        <img class="avatar" src="img/profile.jpg" alt="Profile" />
+        <span>{{ currentUsername }}</span>
+      </div>
+    </header>
+
+    <section class="content-wrap">
+      <div class="title-row">
+        <h1>Orders</h1>
+        <div class="breadcrumb">Home <span>/</span> Orders</div>
+      </div>
+
+      <article class="card dashboard-card">
+        <div class="card-head compact">
+          <h2>Update Order</h2>
+        </div>
+
+        <div class="card-body form-area">
+          <p class="muted-text mb-2" *ngIf="!isEditing">
+            Select an order from the list below to edit. Adding new orders is disabled on this page.
+          </p>
+
+          <div class="form-grid">
+            <div>
+              <label class="field-label">Order ID</label>
+              <input #oid type="text" class="field-input" [readonly]="true" placeholder="Select from list" />
+            </div>
+
+            <div>
+              <label class="field-label">Order No</label>
+              <input #ono type="text" class="field-input" placeholder="ex: i00001" />
+            </div>
+
+            <div>
+              <label class="field-label">Order Date</label>
+              <input #odate type="text" class="field-input" placeholder="ex: 2025-12-08T00:00:00" />
+            </div>
+
+            <div>
+              <label class="field-label">Order By</label>
+              <input #oby type="text" class="field-input" placeholder="ex: Admin" />
+            </div>
+
+            <div>
+              <label class="field-label">Order Group</label>
+              <input #ogroup type="text" class="field-input" value="sv5-theng_rithy" />
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button
+              type="button"
+              class="btn-action btn-primaryish"
+              [disabled]="!isEditing"
+              (click)="updateOrder(oid.value, ono.value, odate.value, oby.value, ogroup.value)"
+            >
+              Update
+            </button>
+
+            <button
+              type="button"
+              class="btn-action btn-mutedish"
+              [disabled]="!isEditing"
+              (click)="cancelEdit(oid, ono, odate, oby, ogroup)"
+            >
+              Cancel
+            </button>
+
+            <button type="button" class="btn-action btn-mutedish btn-mini" (click)="loadOrders()">Refresh</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="card dashboard-card mt-3">
+        <div class="card-head compact card-head-row">
+          <h2>Order List</h2>
+        </div>
+
+        <div class="card-body table-wrap">
+          <div *ngIf="isLoading" class="loading-wrap">
+            <div class="loading-glyph"><i class="bi bi-arrow-repeat"></i></div>
+            <p class="loading-title">Loading...</p>
+            <p class="loader-box">Loading in <span [innerText]="countdown"></span> seconds...</p>
+          </div>
+
+          <table *ngIf="!isLoading && LsOrder.length; else noData" class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Order ID</th>
+                <th>Order No</th>
+                <th>Order Date</th>
+                <th>Order By</th>
+                <th>Order Group</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let o of LsOrder; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ o.orderid }}</td>
+                <td>{{ o.orderno }}</td>
+                <td>{{ o.orderdate | date: 'yyyy-MM-dd HH:mm' }}</td>
+                <td>{{ o.orderby }}</td>
+                <td>{{ o.ordergroup }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="btn-action btn-mini" (click)="startEdit(o, oid, ono, odate, oby, ogroup)">
+                      Edit
+                    </button>
+                    <button type="button" class="btn-action btn-mini btn-dangerish" (click)="deleteOrder(o.orderid)">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #noData>
+            <p *ngIf="!isLoading" class="muted-text">No orders found.</p>
+          </ng-template>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <span>Copyright &copy; 2025-2026 <a href="#">AdminTHR.sv5</a>. All rights reserved.</span>
+      <span>Anything you want</span>
+    </footer>
+  </main>
+</div>
+

@@ -1,0 +1,229 @@
+<div class="dashboard-shell" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <aside class="side-nav">
+    <div class="brand">
+      <span>Angular Midterm S2</span>
+    </div>
+
+    <nav class="menu">
+      <a class="menu-item active" routerLink="/dashboard">
+        <i class="bi bi-speedometer2"></i> DASHBOARD
+      </a>
+      <a class="menu-item" routerLink="/products">
+        <i class="bi bi-bag"></i> PRODUCTS
+      </a>
+      <a class="menu-item" routerLink="/users">
+        <i class="bi bi-person"></i> USER
+      </a>
+      <a class="menu-item" routerLink="/category">
+        <i class="bi bi-tag"></i> CATEGORY
+      </a>
+      <a class="menu-item" routerLink="/order">
+        <i class="bi bi-receipt"></i> ORDER
+      </a>
+      <a class="menu-item" href="#">
+        <i class="bi bi-bank"></i> INCOME
+      </a>
+      <a class="menu-item" routerLink="/posdashboard">
+        <i class="bi bi-shop"></i> POS
+      </a>
+    </nav>
+    <div class="menu-footer">
+      <a class="menu-item" routerLink="/login" (click)="signOut()">
+        <i class="bi bi-box-arrow-right"></i> SIGN OUT
+      </a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="top-bar">
+      <div class="top-left">
+        <button type="button" class="btn btn-link p-0 text-muted" (click)="toggleSidebar()">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <a href="#">Home</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="top-right">
+        <i class="bi bi-search"></i>
+        <i class="bi bi-chat-left-text"></i>
+        <i class="bi bi-bell"></i>
+        <img class="avatar" src="img/profile.jpg" alt="Profile" />
+        <span>{{ currentUsername }}</span>
+      </div>
+    </header>
+
+    <section class="content-wrap">
+      <div class="title-row">
+        <h1>Dashboard v3</h1>
+        <div class="breadcrumb">Home <span>/</span> Dashboard v3</div>
+      </div>
+
+      <div class="grid-two">
+        <article class="card dashboard-card">
+          <div class="card-head">
+            <div>
+              <h2>Weekly Sales</h2>
+              <strong>{{ isSalesLoading ? '...' : thisWeekSalesTotal }}</strong>
+              <p>Sales Count Over Time</p>
+            </div>
+            <div class="metric-up">
+              <a href="#">View Report</a>
+              <div
+                [class.metric-down]="salesTrendDirection === 'down'"
+                [class.metric-flat]="salesTrendDirection === 'flat'"
+              >
+                <i
+                  [class]="
+                    salesTrendDirection === 'down'
+                      ? 'bi bi-arrow-down'
+                      : salesTrendDirection === 'flat'
+                        ? 'bi bi-dash'
+                        : 'bi bi-arrow-up'
+                  "
+                ></i>
+                {{ salesTrendText }}
+              </div>
+              <small>Compared with last week ({{ lastWeekSalesTotal }})</small>
+            </div>
+          </div>
+
+          <div class="chart-area">
+            <svg viewBox="0 0 700 190" preserveAspectRatio="none">
+              <g class="grid-lines">
+                <line x1="0" y1="30" x2="700" y2="30"></line>
+                <line x1="0" y1="70" x2="700" y2="70"></line>
+                <line x1="0" y1="110" x2="700" y2="110"></line>
+                <line x1="0" y1="150" x2="700" y2="150"></line>
+              </g>
+              <polyline class="line line-primary" [attr.points]="salesThisWeekPoints"></polyline>
+              <polyline class="line line-muted" [attr.points]="salesLastWeekPoints"></polyline>
+            </svg>
+            <div class="chart-labels">
+              <span *ngFor="let day of salesWeekLabels">{{ day }}</span>
+            </div>
+          </div>
+
+          <div class="legend-row">
+            <span><i class="dot dot-primary"></i> This Week</span>
+            <span><i class="dot dot-muted"></i> Last Week</span>
+          </div>
+        </article>
+
+        <article class="card dashboard-card">
+          <div class="card-head">
+            <div>
+              <h2>Sales</h2>
+              <strong>$18,230.00</strong>
+              <p>Sales Over Time</p>
+            </div>
+            <div class="metric-up">
+              <a href="#">View Report</a>
+              <div><i class="bi bi-arrow-up"></i> 33.1%</div>
+              <small>Since Past Year</small>
+            </div>
+          </div>
+
+          <div class="bar-chart">
+            <div class="bars">
+              <div class="bar-group" *ngFor="let month of ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct']; let i = index">
+                <div class="bar blue" [style.height.%]="35 + (i * 3 % 20)"></div>
+                <div class="bar green" [style.height.%]="50 + (i * 5 % 25)"></div>
+                <div class="bar yellow" [style.height.%]="25 + (i * 4 % 20)"></div>
+                <span>{{ month }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="legend-row">
+            <span><i class="dot dot-primary"></i> This year</span>
+            <span><i class="dot dot-muted"></i> Last year</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid-two bottom-grid">
+        <article class="card dashboard-card">
+          <div class="card-head compact">
+            <h2>Products</h2>
+            <div class="actions">
+              <i class="bi bi-download"></i>
+              <i class="bi bi-list"></i>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Sales</th>
+                  <th>More</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="isProductsLoading">
+                  <td colspan="4" class="text-center text-muted py-3">Loading products...</td>
+                </tr>
+                <tr *ngIf="!isProductsLoading && !products.length">
+                  <td colspan="4" class="text-center text-muted py-3">No products found.</td>
+                </tr>
+                <tr *ngFor="let item of products; let first = first" [class.highlight]="first">
+                  <td>
+                    <img
+                      *ngIf="item.imageSrc; else noProductImage"
+                      class="thumb product-thumb"
+                      [src]="item.imageSrc"
+                      [alt]="item.name"
+                    />
+                    <ng-template #noProductImage>
+                      <span class="thumb"></span>
+                    </ng-template>
+                    {{ item.name }}
+                  </td>
+                  <td>{{ item.price }}</td>
+                  <td>
+                    <span [class]="item.trendDirection === 'up' ? 'trend up' : 'trend down'">
+                      <i [class]="item.trendDirection === 'up' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                      {{ item.trend }}
+                    </span>
+                    {{ item.sales }}
+                  </td>
+                  <td><i class="bi bi-search text-muted" [attr.title]="'ID: ' + item.id"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card dashboard-card">
+          <div class="card-head compact">
+            <h2>Online Store Overview</h2>
+            <div class="actions">
+              <i class="bi bi-download"></i>
+              <i class="bi bi-list"></i>
+            </div>
+          </div>
+
+          <div class="overview">
+            <div class="overview-row" *ngFor="let metric of overview">
+              <div class="left-icon" [ngClass]="metric.tone">
+                <i class="bi" [ngClass]="metric.icon"></i>
+              </div>
+              <div class="value" [ngClass]="metric.tone">
+                <span><i class="bi bi-graph-up-arrow"></i> {{ metric.value }}</span>
+                <small>{{ metric.label }}</small>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Copyright &copy; 2025-2026 <a href="#">AdminTHR.sv5</a>. All rights reserved.</span>
+      <span>Anything you want</span>
+    </footer>
+  </main>
+</div>
+

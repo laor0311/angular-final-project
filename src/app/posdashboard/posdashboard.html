@@ -1,0 +1,335 @@
+<nav class="navbar navbar-expand-lg appbar shadow-sm">
+  <div class="container-fluid">
+    <button class="btn btn-icon me-2" data-bs-toggle="offcanvas" data-bs-target="#leftMenu" aria-label="Open menu">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <a class="navbar-brand fw-semibold text-white" href="#">Angular Midterm S2</a>
+
+    <div class="d-none d-md-flex align-items-center ms-3 flex-grow-1">
+      <div class="input-group nav-search-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+        <input #navSearch type="search" class="form-control border-start-0" placeholder="Search favorites…"
+          [(ngModel)]="search" />
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <button class="btn nav-scan d-none d-md-inline" title="Scan" aria-label="Scan">
+        <i class="bi bi-upc-scan"></i>
+      </button>
+
+      <button class="btn btn-link nav-icon" title="Logout" aria-label="Logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+
+    <button class="btn btn-success ms-auto d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer"
+      aria-controls="cartDrawer">
+      <i class="bi bi-bag-check me-1"></i>
+      <span>{{ cartCount() }}</span>
+      <span class="ms-1">{{ money(calcTotals().total) }}</span>
+    </button>
+  </div>
+</nav>
+
+<div class="save-row d-flex d-md-none">
+  <div class="container-fluid px-3">
+    <br>
+    <div class="d-flex gap-0">
+      <button class="btn save-row-btn flex-fill" (click)="saveTicketAsFile()">
+        SAVE
+      </button>
+      <button class="btn save-row-btn flex-fill" (click)="chargeAndPrint()" [disabled]="printing || cart.size === 0">
+        CHARGE {{ money(calcTotals().total) }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid py-3">
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="mb-0">Favorites</h5>
+        <div class="d-flex align-items-center gap-2">
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle btn-sm" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="bi bi-grid-3x3-gap me-1"></i> Categories
+            </button>
+            <div class="dropdown-menu p-2 categories-dropdown">
+              <button *ngFor="let c of categories" class="dropdown-item" [class.active]="c===activeCategory"
+                (click)="setCategory(c)">{{ c }}</button>
+            </div>
+          </div>
+
+          <div class="d-none d-md-flex align-items-center">
+            <button class="btn btn-sm btn-outline-secondary me-1" disabled><i class="bi bi-grid"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-list"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3">
+        <div class="col" *ngFor="let p of filteredProducts()">
+          <div class="product-card" [class.sold-out]="isOutOfStock(p)" role="button" (click)="!isOutOfStock(p) && addToCart(p)">
+            <div class="media">
+              <img *ngIf="p.image" [src]="p.image" [alt]="p.name" class="product-image" />
+              <div class="sold-out-overlay" *ngIf="isOutOfStock(p)">
+                <img src="img/sold_out.png" alt="Sold Out" class="sold-out-image" />
+              </div>
+              <div *ngIf="!p.image" class="emoji">{{ p.emoji || '🛒' }}</div>
+            </div>
+            <div class="title">
+              <span class="name">{{ p.name }}</span>
+              <span class="price-badge">{{ money(p.priceCents) }}</span>
+            </div>
+            <span class="count-badge" *ngIf="cart.get(p.id)?.qty as qty">x{{ qty }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chip-strip mb-3 mt-3 chip-bar">
+        <button *ngFor="let c of categories" class="chip" [class.active]="c===activeCategory" (click)="setCategory(c)">
+          {{ c }}
+        </button>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-4 col-md-3 col-lg-2">
+          <div class="card quick-tile" role="button" tabindex="0" [class.active]="globalDiscountPct === 10"
+            (click)="setGlobalDiscount(10)">
+            <div class="card-body text-center">
+              <div class="display-6 fw-bold">10%</div>
+              <div class="small text-muted">Big sale</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4 col-md-3 col-lg-2">
+          <div class="card quick-tile" role="button" tabindex="0" [class.active]="globalDiscountPct === 20"
+            (click)="setGlobalDiscount(20)">
+            <div class="card-body text-center">
+              <div class="display-6 fw-bold">20%</div>
+              <div class="small text-muted">Happy hour</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4 col-md-3 col-lg-2">
+          <div class="card quick-tile" role="button" tabindex="0" [class.active]="beverageDiscountActive"
+            (click)="toggleBeverageDeal()">
+            <div class="card-body text-center">
+              <div class="display-6 fw-bold"><i class="bi bi-cup-hot"></i></div>
+              <div class="small text-muted">Beverage -10%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm position-lg-sticky top-0 ticket-card">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-receipt-cutoff"></i>
+            <strong>Ticket</strong>
+          </div>
+
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Take out
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item active">Take out</a></li>
+              <li><a class="dropdown-item">Dine in</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngIf="cart.size === 0">
+              <div class="py-4 text-center text-muted">Cart is empty</div>
+            </li>
+            <li class="list-group-item" *ngFor="let it of cart | keyvalue">
+              <div class="d-flex align-items-start justify-content-between">
+                <div class="me-2">
+                  <div class="item-title">
+                    {{ getProduct(it.value.productId)?.name }}
+                    <span class="text-muted">× {{ it.value.qty }}</span>
+                  </div>
+                  <div class="small text-muted">
+                    {{ getProduct(it.value.productId)?.category }}
+                    <span *ngIf="getProductDiscountPct(it.value.productId) > 0">
+                      - Discount ({{ getProductDiscountPct(it.value.productId) }}%)
+                    </span>
+                  </div>
+                  <div class="small text-success" *ngIf="getItemDbDiscountCents(it.value.productId, it.value.qty) > 0">
+                    -{{ money(getItemDbDiscountCents(it.value.productId, it.value.qty)) }}
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="item-price">
+                    {{ money(getItemLineSubtotal(it.value.productId, it.value.qty)) }}
+                  </div>
+                  <div class="btn-group btn-group-sm mt-2" role="group">
+                    <button class="btn btn-outline-secondary qty-btn"
+                      (click)="addToCart(getProduct(it.value.productId)!, -1)">
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary qty-btn"
+                      (click)="addToCart(getProduct(it.value.productId)!, +1)"
+                      [disabled]="isQtyMax(it.value.productId)">
+                      <i class="bi bi-plus"></i>
+                    </button>
+                    <button class="btn btn-outline-danger qty-btn" (click)="removeFromCart(it.value.productId)">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-footer bg-white">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Discounts</span>
+            <span>-{{ money(calcTotals().discount) }}</span>
+          </div>
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Tax <span class="text-muted">(7%)</span></span>
+            <span>{{ money(calcTotals().tax) }}</span>
+          </div>
+          <hr class="my-2" />
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Total</span>
+            <span class="h5 mb-0">{{ money(calcTotals().total) }}</span>
+          </div>
+          <div class="ticket-actions d-none d-md-flex gap-0 mt-3 w-100">
+            <button class="btn" (click)="saveTicketAsFile()">
+              <i class="bi bi-cloud-check me-1"></i>Save
+            </button>
+            <button class="btn" (click)="chargeAndPrint()" [disabled]="printing || cart.size === 0">
+              <i class="bi bi-credit-card-2-front me-2"></i>Charge
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="offcanvas offcanvas-start admin-sidepanel" tabindex="-1" id="leftMenu">
+  <div class="offcanvas-header admin-sidepanel-header">
+    <h5 class="offcanvas-title admin-brand">Angular Midterm S2</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body admin-sidepanel-body">
+    <nav class="admin-menu-list">
+      <a class="admin-menu-item" routerLink="/dashboard" data-bs-dismiss="offcanvas">
+        <i class="bi bi-speedometer2"></i>
+        <span>DASHBOARD</span>
+      </a>
+      <a class="admin-menu-item" routerLink="/products" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bag"></i>
+        <span>PRODUCTS</span>
+      </a>
+      <a class="admin-menu-item" routerLink="/users" data-bs-dismiss="offcanvas">
+        <i class="bi bi-person"></i>
+        <span>USER</span>
+      </a>
+      <a class="admin-menu-item" routerLink="/category" data-bs-dismiss="offcanvas">
+        <i class="bi bi-tag"></i>
+        <span>CATEGORY</span>
+      </a>
+      <a class="admin-menu-item" routerLink="/order" data-bs-dismiss="offcanvas">
+        <i class="bi bi-receipt"></i>
+        <span>ORDER</span>
+      </a>
+      <a class="admin-menu-item" href="#" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bank"></i>
+        <span>INCOME</span>
+      </a>
+      <a class="admin-menu-item active" routerLink="/posdashboard" data-bs-dismiss="offcanvas">
+        <i class="bi bi-shop"></i>
+        <span>POS</span>
+      </a>
+    </nav>
+
+    <div class="admin-menu-footer">
+      <button type="button" class="admin-menu-item admin-menu-btn" (click)="logout()" data-bs-dismiss="offcanvas">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>SIGN OUT</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartDrawer">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Ticket</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0 d-flex flex-column">
+    <ul class="list-group list-group-flush flex-grow-1">
+      <li class="list-group-item" *ngIf="cart.size === 0">
+        <div class="py-4 text-center text-muted">Cart is empty</div>
+      </li>
+      <li class="list-group-item" *ngFor="let it of cart | keyvalue">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="me-2">
+            <div class="item-title">
+              {{ getProduct(it.value.productId)?.name }}
+              <span class="text-muted">× {{ it.value.qty }}</span>
+            </div>
+            <div class="small text-muted">
+              {{ getProduct(it.value.productId)?.category }}
+              <span *ngIf="getProductDiscountPct(it.value.productId) > 0">
+                - Discount ({{ getProductDiscountPct(it.value.productId) }}%)
+              </span>
+            </div>
+            <div class="small text-success" *ngIf="getItemDbDiscountCents(it.value.productId, it.value.qty) > 0">
+              -{{ money(getItemDbDiscountCents(it.value.productId, it.value.qty)) }}
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="item-price">
+              {{ money(getItemLineSubtotal(it.value.productId, it.value.qty)) }}
+            </div>
+            <div class="btn-group btn-group-sm mt-2" role="group">
+              <button class="btn btn-outline-secondary qty-btn"
+                (click)="addToCart(getProduct(it.value.productId)!, -1)"><i class="bi bi-dash"></i></button>
+              <button class="btn btn-outline-secondary qty-btn"
+                (click)="addToCart(getProduct(it.value.productId)!, +1)"
+                [disabled]="isQtyMax(it.value.productId)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-danger qty-btn" (click)="removeFromCart(it.value.productId)"><i
+                  class="bi bi-x-lg"></i></button>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <div class="p-3 border-top">
+      <div class="d-flex justify-content-between small mb-1">
+        <span>Discounts</span>
+        <span>-{{ money(calcTotals().discount) }}</span>
+      </div>
+      <div class="d-flex justify-content-between small mb-2">
+        <span>Tax <span class="text-muted">(7%)</span></span>
+        <span>{{ money(calcTotals().tax) }}</span>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Total</span>
+        <span class="h5 mb-0">{{ money(calcTotals().total) }}</span>
+      </div>
+      <div class="d-grid gap-2 mt-3">
+        <button class="btn btn-success" (click)="chargeAndPrint()" [disabled]="printing || cart.size === 0"><i
+            class="bi bi-credit-card-2-front me-2"></i>Charge</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div #printArea class="d-none"></div>

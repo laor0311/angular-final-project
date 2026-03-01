@@ -1,0 +1,209 @@
+<div class="dashboard-shell" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <aside class="side-nav">
+    <div class="brand">
+      <span>Angular Midterm S2</span>
+    </div>
+
+    <nav class="menu">
+      <a class="menu-item" routerLink="/dashboard">
+        <i class="bi bi-speedometer2"></i> DASHBOARD
+      </a>
+      <a class="menu-item" routerLink="/products">
+        <i class="bi bi-bag"></i> PRODUCTS
+      </a>
+      <a class="menu-item" routerLink="/users">
+        <i class="bi bi-person"></i> USER
+      </a>
+      <a class="menu-item active" routerLink="/category">
+        <i class="bi bi-tag"></i> CATEGORY
+      </a>
+      <a class="menu-item" routerLink="/order">
+        <i class="bi bi-receipt"></i> ORDER
+      </a>
+      <a class="menu-item" href="#">
+        <i class="bi bi-bank"></i> INCOME
+      </a>
+      <a class="menu-item" routerLink="/posdashboard">
+        <i class="bi bi-shop"></i> POS
+      </a>
+    </nav>
+    <div class="menu-footer">
+      <a class="menu-item" routerLink="/login" (click)="signOut()">
+        <i class="bi bi-box-arrow-right"></i> SIGN OUT
+      </a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="top-bar">
+      <div class="top-left">
+        <button type="button" class="btn btn-link p-0 text-muted" (click)="toggleSidebar()">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <a href="#">Home</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="top-right">
+        <i class="bi bi-search"></i>
+        <i class="bi bi-chat-left-text"></i>
+        <i class="bi bi-bell"></i>
+        <img class="avatar" src="img/profile.jpg" alt="Profile" />
+        <span>{{ currentUsername }}</span>
+      </div>
+    </header>
+
+    <section class="content-wrap">
+      <div class="title-row">
+        <h1>Category</h1>
+        <div class="breadcrumb">Home <span>/</span> Category</div>
+      </div>
+
+      <div class="category-grid">
+        <article class="card dashboard-card">
+          <div class="card-head compact">
+            <h2>{{ isEditing ? 'Update Category' : 'Add Category' }}</h2>
+          </div>
+
+          <div class="card-body form-area">
+            <div class="form-grid">
+              <div>
+                <label class="field-label">Category ID</label>
+                <input
+                  #cid
+                  type="text"
+                  class="field-input"
+                  [value]="isEditing ? (editingId ?? '') : nextCategoryId"
+                  [readonly]="!isEditing"
+                  placeholder="Auto"
+                />
+              </div>
+
+              <div>
+                <label class="field-label">Category Title</label>
+                <input #ctitle type="text" class="field-input" placeholder="ex: Salads" />
+              </div>
+
+              <div>
+                <label class="field-label">Category Icon</label>
+                <input #cicon type="text" class="field-input" placeholder="ex: bi bi-tag" />
+              </div>
+
+              <div>
+                <label class="field-label">Category Group</label>
+                <input #cgroup type="text" class="field-input" value="sv5-theng_rithy" />
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button
+                *ngIf="!isEditing"
+                type="button"
+                class="btn-action btn-primaryish"
+                (click)="addCategory(cid.value, ctitle.value, cicon.value, cgroup.value)"
+              >
+                Add to Server
+              </button>
+
+              <button
+                *ngIf="isEditing"
+                type="button"
+                class="btn-action btn-primaryish"
+                (click)="updateCategory(cid.value, ctitle.value, cicon.value, cgroup.value)"
+              >
+                Update
+              </button>
+
+              <button
+                *ngIf="isEditing"
+                type="button"
+                class="btn-action btn-mutedish"
+                (click)="cancelEdit(cid, ctitle, cicon, cgroup)"
+              >
+                Cancel
+              </button>
+
+              <button
+                *ngIf="!isEditing"
+                type="button"
+                class="btn-action btn-mutedish"
+                (click)="cid.value=nextCategoryId; ctitle.value=''; cicon.value=''; cgroup.value='sv5-theng_rithy'"
+              >
+                Clear
+              </button>
+              <button type="button" class="btn-action btn-mutedish btn-mini" (click)="loadCategories()">Refresh</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card dashboard-card">
+          <div class="card-head compact">
+            <h2>Category List</h2>
+          </div>
+
+          <div class="card-body table-wrap">
+            <div *ngIf="isLoading" class="loading-wrap">
+              <div class="loading-glyph"><i class="bi bi-arrow-repeat"></i></div>
+              <p class="loading-title">Loading...</p>
+              <p class="loader-box">Loading in <span [innerText]="countdown"></span> seconds...</p>
+            </div>
+
+            <table *ngIf="!isLoading && LsCategory.length; else noData" class="category-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Category ID</th>
+                  <th>Category Title</th>
+                  <th>Category Icon</th>
+                  <th>Category Group</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of LsCategory; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ c.categoryid }}</td>
+                  <td>{{ c.categorytitle }}</td>
+                  <td>
+                    <div class="icon-cell">
+                      <i class="bi" [ngClass]="getCategoryIconClass(c.categoryicon)"></i>
+                      <span class="icon-text">{{ c.categoryicon }}</span>
+                    </div>
+                  </td>
+                  <td>{{ c.categorygroup }}</td>
+                  <td>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="btn-action btn-mini"
+                        (click)="startEdit(c, cid, ctitle, cicon, cgroup)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-action btn-mini btn-dangerish"
+                        (click)="deleteCategory(c.categoryid)"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <ng-template #noData>
+              <p *ngIf="!isLoading" class="muted-text">No categories found.</p>
+            </ng-template>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Copyright &copy; 2025-2026 <a href="#">AdminTHR.sv5</a>. All rights reserved.</span>
+      <span>Anything you want</span>
+    </footer>
+  </main>
+</div>
+
